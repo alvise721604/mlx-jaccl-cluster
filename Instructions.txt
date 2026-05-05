@@ -49,6 +49,8 @@ Su entrambi i Mac:
 mkdir -p ~/models_mlx
 hf download mlx-community/Qwen3-4B-Instruct-2507-4bit  --local-dir ~/models_mlx/Qwen3-4B-Instruct-2507-4bit
 
+# Si possono scaricare i modelli safetensors per MLX usando la app LM Studio
+
 Su entrambi i Mac:
 Modificare path python alla prima riga dello scripts/python-mlxjccl in accordo col reale path del python 3.14 corrente
 sudo cp scripts/python-mlxjccl /usr/local/bin/
@@ -77,3 +79,19 @@ Dal primo Mac provare inferenza distribuita:
 Ora lanciare dal primo Mac:
 
 ./launch_llm_engine.sh # che blocca la console in quanto attiva un server permanente.
+
+Da un altro terminale provare ad eseguire:
+
+curl http://127.0.0.1:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-oss-20b",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Scrivi una funzione Python che calcola Fibonacci iterativamente."
+      }
+    ],
+    "temperature": 0.2,
+    "max_tokens": 2048
+  }'
