@@ -1,12 +1,13 @@
-SU OGNI MAC:
-------------
+INIZIO:
+--------
+Su entrambi i Mac:
 git clone https://github.com/alvise721604/mlx-jaccl-cluster.git
 	cd mlx-jaccl-cluster
 
 conda create -n mlx python=3.14 -y
 conda activate mlx
 python -m pip install --upgrade pip wheel setuptools
-python -m pip install mlx mlx-lm huggingface_hub transformers
+python -m pip install mlx mlx-lm huggingface_hub transformers fastapi uvicorn
 
 VERIFICA:
 
@@ -72,3 +73,7 @@ Dal primo Mac provare inferenza distribuita:
 	  --model /Volumes/Home/dorigo_a/models_mlx/gpt-oss-20b \
 	  --prompt "Write 5 sentences about Thunderbolt RDMA." \
 	  --max-tokens 1024
+
+Ora lanciare dal primo Mac:
+
+./launch_llm_engine.sh # che blocca la console in quanto attiva un server permanente.

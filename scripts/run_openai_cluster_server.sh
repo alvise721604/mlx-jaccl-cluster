@@ -46,7 +46,7 @@ fi
 # ---------
 # Settings with defaults
 # ---------
-ENV_NAME="${ENV_NAME:-mlxjccl}"
+ENV_NAME="${CONDA_ENV_NAME:-mlxjccl}"
 HOSTFILE="${HOSTFILE:-$REPO_DIR/hostfiles/hosts.json}"
 SERVER_PY="${SERVER_PY:-$REPO_DIR/server/openai_cluster_server.py}"
 
