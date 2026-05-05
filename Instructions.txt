@@ -85,7 +85,6 @@ Da un altro terminale provare ad eseguire:
 curl http://127.0.0.1:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gpt-oss-20b",
     "messages": [
       {
         "role": "user",
@@ -93,5 +92,5 @@ curl http://127.0.0.1:8080/v1/chat/completions \
       }
     ],
     "temperature": 0.2,
-    "max_tokens": 2048
+    "max_tokens": 4096
   }'
