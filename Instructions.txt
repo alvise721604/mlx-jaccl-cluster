@@ -89,7 +89,7 @@ curl http://127.0.0.1:8080/v1/chat/completions \
     "messages": [
       {
         "role": "user",
-        "content": "Scrivi una funzione Python che calcola Fibonacci iterativamente."
+        "content": "Dimostra che il limite di sin(x)/x tende a 1 per x che tende a 0. Senza usare De L Hopital."
       }
     ],
     "temperature": 0.2,

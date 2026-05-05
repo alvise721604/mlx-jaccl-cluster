@@ -118,7 +118,8 @@ def _default_ctrl_host() -> str:
 
 CTRL_HOST = os.environ.get("CTRL_HOST", _default_ctrl_host())
 
-DEFAULT_MAX_TOKENS = int(os.environ.get("MAX_TOKENS", "512"))
+DEFAULT_MAX_TOKENS = int(os.environ.get("MAX_TOKENS", "65536"))
+MAX_KV_SIZE = int(os.environ.get("MAX_KV_SIZE", "8192"))
 
 # Backpressure / queueing
 QUEUE_MAX = int(os.environ.get("QUEUE_MAX", "8"))          # max queued requests
@@ -285,7 +286,7 @@ def worker_loop(rank: int) -> None:
         prompt = msg["prompt"]
         max_tokens = int(msg["max_tokens"])
 
-        _ = generate(_model, _tok, prompt, max_tokens=max_tokens)
+        _ = generate(_model, _tok, prompt, max_tokens=max_tokens, max_kv_size=MAX_KV_SIZE,)
         mx.eval()
         send_msg(s, {"type": "done", "rank": rank})
 
@@ -320,7 +321,7 @@ async def _queue_worker() -> None:
                 t0 = time.time()
                 token_count = 0
 
-                for response in stream_generate(_model, _tok, prompt, max_tokens=max_t):
+                for response in stream_generate(_model, _tok, prompt, max_tokens=max_t, max_kv_size=MAX_KV_SIZE,):
                     token_count += 1
                     token_text = response.text  # GenerationResponse.text contains the decoded text
                     if kind == "chat":
@@ -389,7 +390,7 @@ async def _queue_worker() -> None:
                 # Non-streaming mode: use future
                 fut: asyncio.Future = result_target
                 t0 = time.time()
-                out_text = generate(_model, _tok, prompt, max_tokens=max_t)
+                out_text = generate(_model, _tok, prompt, max_tokens=max_t, max_kv_size=MAX_KV_SIZE,)
                 mx.eval()
                 t1 = time.time()
 
