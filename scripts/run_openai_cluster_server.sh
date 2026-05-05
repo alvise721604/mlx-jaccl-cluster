@@ -135,6 +135,8 @@ fi
 # ---------
 echo "Starting cluster server..."
 conda run -n "$ENV_NAME" mlx.launch --verbose --backend jaccl \
+  --cwd /Volumes/Home/dorigo_a/mlx-jaccl-cluster \
+  --python /usr/local/bin/python-mlxjccl \
   --hostfile "$HOSTFILE" \
   --env MLX_METAL_FAST_SYNCH=1 \
   --env HF_HUB_OFFLINE=1 \
