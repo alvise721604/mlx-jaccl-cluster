@@ -1,0 +1,74 @@
+SU OGNI MAC:
+------------
+git clone https://github.com/alvise721604/mlx-jaccl-cluster.git
+	cd mlx-jaccl-cluster
+
+conda create -n mlx python=3.14 -y
+conda activate mlx
+python -m pip install --upgrade pip wheel setuptools
+python -m pip install mlx mlx-lm huggingface_hub transformers
+
+VERIFICA:
+
+	python - <<'PY'
+	import mlx.core as mx
+	import mlx_lm
+	print("mlx ok")
+	print("default device:", mx.default_device())
+	PY
+
+Deve stampare:
+
+	mlx ok
+	default device: Device(gpu, 0)
+
+VERIFICA (non necessario fare gli ifconfig perché le NIC TB5 sono già configurate con i loro IP):
+Dal primo Mac:
+
+$ mlx.distributed_config --verbose --hosts macstudio1,macstudio2  --over thunderbolt  --backend jaccl
+[INFO] Checking for ssh access for macstudio1, macstudio2 
+[INFO] Preparing for communication over thunderbolt 
+[INFO] Getting connectivity from macstudio1 
+[INFO] Getting connectivity from macstudio2 
+[INFO] Getting interface names from macstudio1 
+[INFO] Getting interface names from macstudio2 
+[INFO] Checking that macstudio1 supports RDMA 
+[INFO] Checking that macstudio2 supports RDMA 
+[INFO] Prepare a jaccl hostfile 
+[INFO] Getting the ip from macstudio1 
+[INFO] Getting the ip from macstudio2 
+Setup for macstudio1
+====================
+sudo ifconfig bridge0 down
+sudo ifconfig en3 inet 192.168.0.1 netmask 255.255.255.252
+sudo route change 192.168.0.2 -interface en3
+
+TEST DOWNLOAD di un Model:
+Su entrambi i Mac:
+mkdir -p ~/models_mlx
+hf download mlx-community/Qwen3-4B-Instruct-2507-4bit  --local-dir ~/models_mlx/Qwen3-4B-Instruct-2507-4bit
+
+Su entrambi i Mac:
+Modificare path python alla prima riga dello scripts/python-mlxjccl in accordo col reale path del python 3.14 corrente
+sudo cp scripts/python-mlxjccl /usr/local/bin/
+
+Sul primo Mac:
+sudo mkdir -p /usr/local/etc/
+sudo cp hostfiles/hosts_mac_cluster.json /usr/local/etc/hosts.json
+
+Su secondo Mac fare un sistema di symlinks in modo che sia visibile /Volumes/Home/dorigo_a come sul primo Mac
+
+Dal primo Mac provare inferenza distribuita:
+
+	mlx.launch \
+	  --backend jaccl \
+	  --hostfile /usr/local/etc/hosts.json \
+	  --cwd /Volumes/Home/dorigo_a/mlx-jaccl-cluster \
+	  --python /usr/local/bin/python-mlxjccl \
+	  --env MLX_METAL_FAST_SYNCH=1 \
+	  --env HF_HUB_OFFLINE=1 \
+	  --env TRANSFORMERS_OFFLINE=1 -- \
+	  /Volumes/Home/dorigo_a/mlx-jaccl-cluster/scripts/jaccl_tps_bench.py \
+	  --model /Volumes/Home/dorigo_a/models_mlx/gpt-oss-20b \
+	  --prompt "Write 5 sentences about Thunderbolt RDMA." \
+	  --max-tokens 1024
