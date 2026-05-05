@@ -1,0 +1,56 @@
+#!/Volumes/Home/dorigo_a/miniforge3/envs/mlx/bin/python
+import os
+import resource
+import runpy
+import sys
+
+# Conserva la funzione originale
+_real_setrlimit = resource.setrlimit
+
+# Prova ad alzare il soft limit fino al massimo consentito.
+soft, hard = resource.getrlimit(resource.RLIMIT_NOFILE)
+
+# Evita di chiedere più dell'hard limit corrente.
+target_soft = min(4096, hard)
+
+if soft < target_soft:
+    try:
+        _real_setrlimit(resource.RLIMIT_NOFILE, (target_soft, hard))
+    except Exception:
+        pass
+
+def safe_setrlimit(which, limits):
+    """
+    Workaround per mlx_lm.utils, che prova a fare:
+        resource.setrlimit(resource.RLIMIT_NOFILE, (2048, 4096))
+    Su macOS/SSH può fallire perché non è permesso alzare l'hard limit.
+    """
+    if which == resource.RLIMIT_NOFILE:
+        requested_soft, requested_hard = limits
+        current_soft, current_hard = resource.getrlimit(which)
+
+        safe_soft = min(requested_soft, current_hard)
+        safe_hard = current_hard
+
+        # Non abbassare il soft limit se è già più alto.
+        safe_soft = max(current_soft, safe_soft)
+
+        try:
+            return _real_setrlimit(which, (safe_soft, safe_hard))
+        except Exception:
+            # Non rendere fatale questa chiamata: mlx_lm vuole solo aumentare NOFILE.
+            return None
+
+    return _real_setrlimit(which, limits)
+
+# Monkey patch globale del modulo resource.
+resource.setrlimit = safe_setrlimit
+
+if len(sys.argv) < 2:
+    print("usage: python-mlxjccl <script.py> [args...]", file=sys.stderr)
+    sys.exit(2)
+
+script = sys.argv[1]
+sys.argv = sys.argv[1:]
+
+runpy.run_path(script, run_name="__main__")
