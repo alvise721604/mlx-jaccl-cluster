@@ -148,5 +148,7 @@ conda run -n "$ENV_NAME" mlx.launch --verbose --backend jaccl \
   --env CTRL_HOST="$CTRL_HOST" \
   --env CTRL_PORT="$CTRL_PORT" \
   --env QUEUE_MAX="$QUEUE_MAX" \
+  --env MAX_TOKENS="$MAX_TOKENS" \
+  --env MAX_KV_SIZE="$MAX_KV_SIZE" \
   --env REQ_TIMEOUT="$REQ_TIMEOUT" -- \
   "$SERVER_PY"
